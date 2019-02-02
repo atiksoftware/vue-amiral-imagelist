@@ -1,0 +1,38 @@
+{
+  "name": "vue-amiral-imagelist",
+  "version": "1.0.4",
+  "description": "A Vue.js component that image list and uploading as dragable",
+  "main": "dist/vue-amiral-imagelist.js",
+  "scripts": {
+    "build": "rimraf ./dist && webpack --config ./webpack.config.js"
+  },
+  "author": "Mansur ATİK",
+  "license": "MIT",
+  "dependencies": {
+    "css-loader": "^2.1.0",
+    "less": "^3.9.0",
+    "less-loader": "^4.1.0",
+    "moment": "^2.18.1",
+    "vuedraggable": "^2.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonygore/vue-clock-simple"
+  },
+  "devDependencies": {
+    "babel-core": "^6.10.4",
+    "babel-loader": "^6.2.4",
+    "babel-plugin-transform-runtime": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-2": "^6.11.0",
+    "babel-runtime": "^6.9.2",
+    "rimraf": "^2.6.1",
+    "vue": "^2.2.1",
+    "vue-html-loader": "^1.2.3",
+    "vue-loader": "^11.3.4",
+    "vue-style-loader": "^2.0.3",
+    "vue-template-compiler": "^2.2.1",
+    "webpack": "1.13.1",
+    "webpack-merge": "^4.1.0"
+  }
+}

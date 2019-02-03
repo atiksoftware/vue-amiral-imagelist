@@ -1,26 +1,32 @@
 <template>
 	<div class="vue-amiral-imagelist"> 
 		<span class="vue-amiral-imagelist-items">
-			<draggable v-model="imagesHandle" @change="updateList($event, imagesHandle)" >
+			<draggable v-model="imagesHandle" @change="updateList($event, imagesHandle)" :options="{disabled:getIsDraggableDisabled}" >
 				<vue-amiral-imagelist-item v-for="(item,itemIndex) in imagesHandle" :key="itemIndex" :src="item" v-on:removeme="removeImage(itemIndex)" itemtype="image" itemstatus="success"/>  
 			</draggable>
 		</span>
 		<span class="vue-amiral-imagelist-action">
 			<vue-amiral-imagelist-item v-for="(item,itemIndex) in uploadQueue" :key="itemIndex" v-show="item.onProgress" itemtype="progress" :itemstatus="item.status" :percent="item.percent"/>  
-			<vue-amiral-imagelist-item itemtype="addNew" v-on:clicked="doOpenNewFile()" />
+			<vue-amiral-imagelist-item itemtype="addNew" v-on:clicked="doOpenNewFile()" v-show="getMaxLimitBalance > 0" />
 		</span> 
 	</div>
 </template>
 
 <script> 
-	import Item from "./AmiralImagelistItem"
+	import Item from "./AmiralImagelistItem.vue"
 	import draggable from 'vuedraggable'
-import { type } from 'os';
+	import { type } from 'os';
 	export default {
 		name : "vue-amiral-imagelist",
 		props:{
-			mediagroup : String,	
-			images : Array	
+			mediagroup : {
+				type : String,
+				default : ""
+			},	
+			images : Array,
+			limit : {
+				default : ""
+			},
 		},
 		model: {
 			prop: "images",
@@ -30,35 +36,8 @@ import { type } from 'os';
 			'vue-amiral-imagelist-item' : Item ,
 			draggable
 		},
-		data: () => ({ 
-			default_config : {
-				url : {
-					uploadTo : "/api/fileupload",
-					viewprefix : "/storage"
-				},
-				accept : "image/*",
-				theme : {
-					color : {
-						border : "#ccc",
-						borderHover : "#3f51b5",
-						actionBorder : "#ccc",
-						actionText : "#ccc",
-						actionHoverBorder : "#555",
-						actionHoverBackground : "#555",
-						actionHoverText : "#fff",
-						progress : "#3f51b5",
-					},
-					size : {
-						slot : "100px",
-						margin : "5px"
-					},
-					text : {
-						addNew : "Yeni Ekle"
-					}
-				},
-				draggable : true
-			},
-			uploadQueue : [ ],
+		data: () => ({  
+			uploadQueue : [  ],
 			imagesHandle : []
 		}),
 		watch:{
@@ -74,14 +53,15 @@ import { type } from 'os';
 				var self = this;
 				var fs = document.createElement("input");
 				fs.setAttribute("type", "file");
-				fs.setAttribute("accept", "image/*");
+				fs.setAttribute("accept", self.getAcceptFiletype);
 				fs.setAttribute("multiple", "");
 				fs.value = "";
 				fs.click();
 				fs.addEventListener(
 					"change",
 					function(event) {
-						for(var i = 0; i < fs.files.length;i++){
+						var maxAddLimit = self.getMaxLimitBalance
+						for(var i = 0; i < fs.files.length && i < maxAddLimit ;i++){
 							self.filesSelected(fs.files[i]);
 						} 
 					},
@@ -103,35 +83,36 @@ import { type } from 'os';
 				var xhr = new XMLHttpRequest(); 
 				xhr.open(
 					"POST",
-					process.env.VUE_APP_BASE_URL + "/api/admin/uploadfile/"+self.mediagroup,
+					this.getUploadTargetUrl,
 					true
 				);
 				xhr.timeout = 3000000;
 
-				xhr.addEventListener("load", function(event) {});
+				xhr.addEventListener("load", function(event) { 
+				});
 				xhr.addEventListener("error", function() {
 					QueueLine.onProgress = false;
-					console.log("An arror while image uploading")
+					console.log("%c An arror while image uploading", 'background: #990014; color: #fff;padding:5px')
 				});
 				xhr.onreadystatechange = function() {
 					if (xhr.readyState == 4) {
 						try {
 							var result = JSON.parse(xhr.responseText); 
 							if (result.status == "success") { 
-								if(typeof result.image != "undefined"){
-									self.images.push(result.image.toString());
+								if(typeof result.url != "undefined"){
+									self.images.push(result.url.toString());
 								}
 								else{
-									console.log("An arror while image uploading: Result has not contain 'url' key as an url")
+									console.log("%c An arror while image uploading: Result has not contain 'url' key as an url", 'background: #990014; color: #fff;padding:5px')
 								}
 							}
 							else{
-								console.log("An arror while image uploading: Result has not contain 'status' key as 'success'")
+								console.log("%c An arror while image uploading: Result has not contain 'status' key as 'success'", 'background: #990014; color: #fff;padding:5px')
 							}
 							QueueLine.onProgress = false;
 						} catch (e) {
 							QueueLine.onProgress = false;
-							console.log("An arror while image uploading: Response is not JSON format")
+							console.log("%c An arror while image uploading: Response is not JSON format", 'background: #990014; color: #fff;padding:5px')
 						}
 						QueueLine.onProgress = false;
 					}
@@ -140,13 +121,14 @@ import { type } from 'os';
 					var percent = Math.round((event.loaded / event.total) * 100);
 					QueueLine.percent = percent;
 					if(percent == 100){ 
+						QueueLine.percent = "waiting";
 						QueueLine.status = "waiting";
 					}
 				};
 				xhr.upload.addEventListener("progress", onProgressHandler);
 				xhr.addEventListener("progress", onProgressHandler);
 				var formdata = new FormData();
-				formdata.append("file", QueueLine.file); 
+				formdata.append(self.getPostFieldName, QueueLine.file); 
 				xhr.send(formdata);
 			},
 			updateList(e,g){ 
@@ -159,24 +141,76 @@ import { type } from 'os';
 			
 		},
 		computed:{ 
+			getUploadTargetUrl(){
+				if(this.$AmiralImagelistConfig){
+					var cfg = this.$AmiralImagelistConfig
+					var url = cfg.upload_target_url
+					if(this.mediagroup && this.mediagroup != ""){
+						if(cfg.upload_group_method == "path"){
+							url = url.replace(/\/$/g,"");
+							url += "/" + this.mediagroup
+						}
+						if(cfg.upload_group_method == "query"){
+							if(url.includes("?")){
+								url += "&" + cfg.upload_group_query_key + "=" + this.mediagroup
+							}
+							else{
+								url += "?" + cfg.upload_group_query_key + "=" + this.mediagroup
+							}
+						}
+					}
+					return url;
+				}
+				return "/"
+			},
+			getAcceptFiletype(){ 
+				if(this.$AmiralImagelistConfig){
+					return this.$AmiralImagelistConfig.upload_accept_filetype
+				} 
+				return "image/*"
+			},
+			getMaxLimit(){
+				if(this.limit != ""){
+					return parseInt(this.limit)
+				}
+				return 999;
+			},
+			getMaxLimitBalance(){
+				var count = 0;
+				count += this.imagesHandle.length;
+				for(var i = 0; i < this.uploadQueue.length; ++i){
+					if(this.uploadQueue[i].onProgress) count++;
+				} 
+				return this.getMaxLimit - count;
+			},
+			getIsDraggableDisabled(){ 
+				if(this.$AmiralImagelistConfig){
+					return !this.$AmiralImagelistConfig.draggable
+				} 
+				return false
+			},
+			getPostFieldName(){
+				if(this.$AmiralImagelistConfig){
+					return this.$AmiralImagelistConfig.upload_post_field_name
+				} 
+				return "file" 
+			}
 		}
 	}
 </script>
 
 
-<style lang="less" scoped>
+<style lang="css" >
 	.vue-amiral-imagelist{
 		overflow: hidden;
 		margin:0px -5px; 
-		.vue-amiral-imagelist-items{
-			background:#ccc;  
-		}
-		.vue-amiral-imagelist-action{ 
-			&::after{
-				display: block;
-				content: '';
-				clear: both;
-			}
-		} 
+	}
+	.vue-amiral-imagelist-items{
+		background : #ccc;  
+	}
+	.vue-amiral-imagelist-action::after{
+		display: block;
+		content: '';
+		clear: both;
 	}
 </style>

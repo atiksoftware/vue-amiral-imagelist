@@ -15,7 +15,11 @@ export default {
 			if(this.src == "" || this.src == "false" || this.src == false){
 				return "";
 			} 
-			return this.src+this.src;
+			
+			if(this.$AmiralImagelistConfig){
+				return this.$AmiralImagelistConfig.view_path_prefix + this.src;
+			} 
+			return this.src;
 		}
 	}
 }

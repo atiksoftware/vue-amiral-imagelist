@@ -1,12 +1,31 @@
 {
   "name": "vue-amiral-imagelist",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A Vue.js component that image list and uploading as dragable",
   "main": "dist/vue-amiral-imagelist.js",
+  "keywords": [
+    "vue",
+    "vuejs",
+    "image",
+    "list",
+    "upload",
+    "post",
+    "view",
+    "edit",
+    "drag",
+    "and",
+    "drop",
+    "amiral",
+    "vue-amiral-imagelist",
+    "web-components"
+  ],
   "scripts": {
     "build": "rimraf ./dist && webpack --config ./webpack.config.js"
   },
-  "author": "Mansur ATİK",
+  "author": {
+    "name": "Mansur ATİK",
+    "email": "atiksoftware@gmail.com"
+  },
   "license": "MIT",
   "dependencies": {
     "css-loader": "^2.1.0",
@@ -21,6 +40,7 @@
     "type": "git",
     "url": "git+https://github.com/atiksoftware/vue-amiral-imagelist"
   },
+  "homepage": "https://github.com/atiksoftware/vue-amiral-imagelist#readme",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/polyfill": "^7.0.0",

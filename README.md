@@ -1,8 +1,8 @@
 <h1 align="center">VueJS Image Upload List</h1>
 
-Vue component (Vue.js 2.0) or directive (Vue.js 1.0) allowing drag-and-drop and synchronization with view model array.
-This component can upload&view only your image list for now.
-Actualy i create this component for use myself.
+Vue component (Vue.js 2.0) or directive (Vue.js 1.0) allowing drag-and-drop and synchronization with view model array.<br>
+This component can upload&view only your image list for now.<br>
+Actualy i create this component for use myself.<br>
 I will add custom upload function and events to future
 
 ## Demo

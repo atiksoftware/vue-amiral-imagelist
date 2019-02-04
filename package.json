@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anthonygore/vue-clock-simple"
+    "url": "git+https://github.com/atiksoftware/vue-amiral-imagelist"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

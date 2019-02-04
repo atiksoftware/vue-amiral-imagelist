@@ -29,7 +29,7 @@ Vue.use(imagelist, {
 ```
 ### Use in project:
 ``` html
-<vue-amiral-imagelist v-model="images" mediagroup="product" limit="6" />
+<vue-amiral-imagelist v-model="images" mediagroup="product" limit="6" sizetype="h" />
 ```
 ``` js
 data: () => ({
@@ -53,6 +53,11 @@ Default: `null`<br><br>
 **limit**<br>
 What: If you want use max image limit you can give a max limit<br>
 Type: `String` or `Number`<br>
+Required: `false`<br>
+Default: `null`<br><br>
+**sizetype**<br>
+What: If you wanna allow only horizontal|vertical|square pics, you can use this as "hvs" or "h" or "v" or "s"<br>
+Type: `String`<br>
 Required: `false`<br>
 Default: `null`
 

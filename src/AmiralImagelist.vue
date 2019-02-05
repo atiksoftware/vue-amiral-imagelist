@@ -2,13 +2,21 @@
 	<div class="vue-amiral-imagelist"> 
 		<span class="vue-amiral-imagelist-items">
 			<draggable v-model="imagesHandle" @change="updateList($event, imagesHandle)" :options="{disabled:getIsDraggableDisabled}" >
-				<vue-amiral-imagelist-item v-for="(item,itemIndex) in imagesHandle" :key="itemIndex" :src="item" v-on:removeme="removeImage(itemIndex)" itemtype="image" itemstatus="success"/>  
+				<vue-amiral-imagelist-item v-for="(item,itemIndex) in imagesHandle" :key="itemIndex" :src="item" v-on:removeme="removeImage(itemIndex)" v-on:displayme="displayme(itemIndex)" itemtype="image" itemstatus="success"/>  
 			</draggable>
 		</span>
 		<span class="vue-amiral-imagelist-action">
 			<vue-amiral-imagelist-item v-for="(item,itemIndex) in uploadQueue" :key="itemIndex" v-show="item.onProgress" itemtype="progress" :itemstatus="item.status" :percent="item.percent"/>  
 			<vue-amiral-imagelist-item itemtype="addNew" v-on:clicked="doOpenNewFile()" v-show="getMaxLimitBalance > 0" />
 		</span> 
+		<div class="vue-amiral-imagelist-display" v-if="display.show" @click="displayme(-1)">
+			<div class="vue-amiral-imagelist-display-close">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M23.954 21.03l-9.184-9.095 9.092-9.174-2.832-2.807-9.09 9.179-9.176-9.088-2.81 2.81 9.186 9.105-9.095 9.184 2.81 2.81 9.112-9.192 9.18 9.1z"/></svg>
+			</div>
+			<div class="vue-amiral-imagelist-display-content">
+				<img :src="getDisplaySrc" alt="">
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -27,6 +35,9 @@
 			limit : {
 				default : ""
 			},
+			sizetype : {
+				default : ""
+			},
 		},
 		model: {
 			prop: "images",
@@ -38,7 +49,11 @@
 		},
 		data: () => ({  
 			uploadQueue : [  ],
-			imagesHandle : []
+			imagesHandle : [],
+			display: {
+				show : false,
+				src : ""
+			}
 		}),
 		watch:{
 			images(n){
@@ -49,6 +64,29 @@
 			this.imagesHandle = this.images;
 		},
 		methods:{
+			dataURLToBlob(dataURL,filename) {
+				var BASE64_MARKER = ';base64,';
+				if (dataURL.indexOf(BASE64_MARKER) == -1) {
+					var parts = dataURL.split(',');
+					var contentType = parts[0].split(':')[1];
+					var raw = parts[1];
+
+					return new Blob([raw], {type: contentType},filename);
+				}
+
+				var parts = dataURL.split(BASE64_MARKER);
+				var contentType = parts[0].split(':')[1];
+				var raw = window.atob(parts[1]);
+				var rawLength = raw.length;
+
+				var uInt8Array = new Uint8Array(rawLength);
+
+				for (var i = 0; i < rawLength; ++i) {
+					uInt8Array[i] = raw.charCodeAt(i);
+				}
+
+				return new Blob([uInt8Array], {type: contentType},filename);
+			},
 			doOpenNewFile(){ 
 				var self = this;
 				var fs = document.createElement("input");
@@ -70,9 +108,59 @@
 			},
 			filesSelected(file) {
 				var self = this; 
+				var fr = new FileReader; 
+				fr.onload = function() { 
+					var img = new Image; 
+					img.onload = function() {
+						var o = img.width / img.height
+						var t = "s";
+						if(o > 1.35){ t = "h"}; 
+						if(o < 0.85){t = "v"};  
+						if(!self.getSizetypes.includes(t)){
+							return ;
+						} 
+						var ex = file.name.split('.').pop().toLowerCase();
+						if( ex == "jpg" || ex == "jpeg"){
+							var canvas = document.createElement('canvas'),
+								max_size = 5000, 
+								width = img.width,
+								height = img.height; 
+							if(self.$AmiralImagelistConfig){ 
+								max_size = self.$AmiralImagelistConfig.upload_accept_maxsize
+							}
+							if (width > height) {
+								if (width > max_size) {
+									height *= max_size / width;
+									width = max_size;
+								}
+							} else {
+								if (height > max_size) {
+									width *= max_size / height;
+									height = max_size;
+								}
+							}
+							canvas.width = width;
+							canvas.height = height;
+							canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+							var dataUrl = canvas.toDataURL('image/jpeg');
+							var resizedImage = self.dataURLToBlob(dataUrl,file.name);
+
+							self.filesSelectedUpload(resizedImage,file.name,resizedImage.size); 
+						}
+						else{
+							self.filesSelectedUpload(file,file.name,file.size); 
+						}
+
+					}; 
+					img.src = fr.result; 
+				}; 
+				fr.readAsDataURL(file);
+			},
+			filesSelectedUpload(file,filename,filesize) { 
+				var self = this; 
 				var QueueLine = {
-					filename    : file.name,
-					filesize    : file.size,
+					filename    : filename,
+					filesize    : filesize,
 					file        : file,
 					percent     : 0,
 					onProgress  : true,
@@ -127,8 +215,8 @@
 				};
 				xhr.upload.addEventListener("progress", onProgressHandler);
 				xhr.addEventListener("progress", onProgressHandler);
-				var formdata = new FormData();
-				formdata.append(self.getPostFieldName, QueueLine.file); 
+				var formdata = new FormData(); 
+				formdata.append(self.getPostFieldName, QueueLine.file,QueueLine.filename); 
 				xhr.send(formdata);
 			},
 			updateList(e,g){ 
@@ -137,6 +225,15 @@
 			removeImage(i){
 				this.imagesHandle.splice(i,1);
 				this.$emit('input', this.imagesHandle)
+			},
+			displayme(i){
+				if(i >= 0){
+					this.display.src = this.imagesHandle[i]
+					this.display.show = true
+				}
+				else{
+					this.display.show = false
+				}
 			}
 			
 		},
@@ -194,13 +291,33 @@
 					return this.$AmiralImagelistConfig.upload_post_field_name
 				} 
 				return "file" 
+			},
+			getSizetypes(){
+				if(this.sizetype != ""){
+					return this.sizetype.split("")
+				}
+				return ["h","v","s"]
+			},
+			getDisplaySrc(){
+				if(this.display.src.startsWith("http") || this.display.src.startsWith("//")){
+					return this.src;
+				}
+				if(this.display.src == "" || this.display.src == "false" || this.display.src == false){
+					return "";
+				}  
+				if(this.$AmiralImagelistConfig){
+					return this.$AmiralImagelistConfig.view_path_prefix + this.display.src;
+				} 
+				return this.display.src;
 			}
 		}
 	}
 </script>
 
 
-<style lang="css" >
+<style lang="less" >
+	@vail_color_border : "#ccc";
+	
 	.vue-amiral-imagelist{
 		overflow: hidden;
 		margin:0px -5px; 
@@ -212,5 +329,39 @@
 		display: block;
 		content: '';
 		clear: both;
+	}
+	.vue-amiral-imagelist-display{
+		position: fixed;
+		left:0px;
+		top:0px;
+		right:0px;
+		bottom:0px;
+		background-color: rgba(0,0,0,.8);
+		.vue-amiral-imagelist-display-close{
+			position:absolute;
+			right:5px;
+			top:5px;
+			height:40px;
+			width:40px;
+			background : #000;
+			svg{
+				display:block;
+				margin:8px;
+				path{
+					fill:#fff
+				}
+			}
+		}
+		.vue-amiral-imagelist-display-content{
+			display:table;
+			height:calc(~"100% - 100px");
+			max-width:calc(~"100% - 100px");
+			margin:50px auto;
+			img{
+				width:100%;
+				height:100%;
+				object-fit: contain; 
+			}
+		}
 	}
 </style>

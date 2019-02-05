@@ -56,11 +56,7 @@
  		],
  	},
  	optimization: {
- 		minimizer: [
-			// new UglifyJsPlugin({
-			// 	parallel: true,
-			//   }),
-		],
+ 		minimize: true,
  	},
  	plugins: [
  		new VueLoaderPlugin()

@@ -22,6 +22,10 @@ let defaults = {
     
     upload_accept_filetype : "image/*",
 
+	/** This value for resize JPG files to maxarea
+	 */
+    upload_accept_maxsize  : 1920, 
+
     /** images will view on imagelist with this prefix url
      *  example: your image array list ["/images/products/image1.jpg","/images/products/image2.jpg"]
      * 	but your absolute url is "http://cdn.mysite.com/images/products/image1.jpg"
@@ -33,7 +37,7 @@ let defaults = {
     /** not need explain this keys,
      *  keys already look like understandable
      */
-    theme_color_border : "#ccc",
+    theme_color_border : "#f00",
     theme_color_border_hover : "#3f51b5",
     theme_color_action_border : "#ccc",
     theme_color_action_text : "#ccc",

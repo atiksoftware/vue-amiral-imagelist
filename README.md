@@ -94,7 +94,11 @@ let defaults = {
     upload_post_field_name : "file",
     
     upload_accept_filetype : "image/*",
-
+    
+    /** This value for resize JPG files to maxarea
+     */
+    upload_accept_maxsize  : 1920, 
+    
     /** images will view on imagelist with this prefix url
      *  example: your image array list ["/images/products/image1.jpg","/images/products/image2.jpg"]
      * 	but your absolute url is "http://cdn.mysite.com/images/products/image1.jpg"

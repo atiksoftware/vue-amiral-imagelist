@@ -7,7 +7,7 @@
 		</span>
 		<span class="vue-amiral-imagelist-action">
 			<vue-amiral-imagelist-item v-for="(item,itemIndex) in uploadQueue" :key="itemIndex" v-show="item.onProgress" itemtype="progress" :itemstatus="item.status" :percent="item.percent"/>  
-			<vue-amiral-imagelist-item itemtype="addNew" v-on:clicked="doOpenNewFile()" v-show="getMaxLimitBalance > 0" />
+			<vue-amiral-imagelist-item itemtype="addNew" v-on:clicked="doOpenNewFile()" v-show="getMaxLimitBalance > 0" :maxlimit="getMaxLimit" :maxlimitalready="getMaxLimitAlready"/>
 		</span> 
 		<div class="vue-amiral-imagelist-display" v-if="display.show" @click="displayme(-1)">
 			<div class="vue-amiral-imagelist-display-close">
@@ -272,13 +272,21 @@
 				}
 				return 999;
 			},
+			getMaxLimitAlready(){
+				var count = 0;
+				count += this.imagesHandle.length;
+				for(var i = 0; i < this.uploadQueue.length; ++i){
+					if(this.uploadQueue[i].onProgress) count++;
+				} 
+				return count;
+			},
 			getMaxLimitBalance(){
 				var count = 0;
 				count += this.imagesHandle.length;
 				for(var i = 0; i < this.uploadQueue.length; ++i){
 					if(this.uploadQueue[i].onProgress) count++;
 				} 
-				return this.getMaxLimit - count;
+				return this.getMaxLimit - this.getMaxLimitAlready;
 			},
 			getIsDraggableDisabled(){ 
 				if(this.$AmiralImagelistConfig){
@@ -337,6 +345,8 @@
 		right:0px;
 		bottom:0px;
 		background-color: rgba(0,0,0,.8);
+		z-index: 100;
+		cursor: pointer;
 		.vue-amiral-imagelist-display-close{
 			position:absolute;
 			right:5px;
@@ -344,6 +354,7 @@
 			height:40px;
 			width:40px;
 			background : #000;
+			z-index: 3;
 			svg{
 				display:block;
 				margin:8px;
@@ -352,15 +363,19 @@
 				}
 			}
 		}
-		.vue-amiral-imagelist-display-content{
-			display:table;
-			height:calc(~"100% - 100px");
-			max-width:calc(~"100% - 100px");
+		.vue-amiral-imagelist-display-content{ 
+			position: relative;
+			height:calc(~"100% - 100px") !important;
+			max-width:calc(~"100% - 100px") !important;
 			margin:50px auto;
 			img{
-				width:100%;
-				height:100%;
+				max-width:100%;
+				max-height:100%;
 				object-fit: contain; 
+				position: absolute;
+				left:50%;
+				top:50%;
+				transform: translateX(-50%) translateY(-50%);
 			}
 		}
 	}

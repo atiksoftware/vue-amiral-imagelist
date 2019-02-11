@@ -20,9 +20,7 @@
 				<div class="vaii-icon">
 					<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M11 11v-11h1v11h11v1h-11v11h-1v-11h-11v-1h11z"/></svg>
 				</div>
-				<div class="vaii-text">
-					{{getAddNewtext}}
-				</div>
+				<div class="vaii-text" v-html="getAddNewtext"> </div>
 			</div>
 		</div>
 	</div>
@@ -37,6 +35,8 @@
 			src : String,
 			itemtype : String,
 			itemstatus : String,
+			maxlimit : Number,
+			maxlimitalready : Number,
 			percent : {
 				default : 0
 			},
@@ -78,10 +78,14 @@
 		},
 		computed: {
 			getAddNewtext(){
+				var text = "Add New";
 				if(this.$AmiralImagelistConfig){
-					return this.$AmiralImagelistConfig.text_add_new
+					text = this.$AmiralImagelistConfig.text_add_new
 				}
-				return "Add New"
+				if(this.maxlimit != 999){
+					text += "<br>" + this.maxlimitalready +"/" + this.maxlimit
+				}
+				return text
 			},
 			getSrc(){
 				if(this.src.startsWith("http") || this.src.startsWith("//")){

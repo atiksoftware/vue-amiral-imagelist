@@ -7,7 +7,7 @@ I will add custom upload function and events to future
 
 ## Demo
 
-![demo gif](https://raw.githubusercontent.com/atiksoftware/vue-amiral-imagelist/master/assets/demo_view.gif)
+![demo gif](https://raw.githubusercontent.com/atiksoftware/vue-amiral-imagelist/master/assets/demo_view_1_2_0.gif)
 
 ## Installation
 

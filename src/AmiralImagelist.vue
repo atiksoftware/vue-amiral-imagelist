@@ -31,6 +31,10 @@
 				type : String,
 				default : ""
 			},	
+			headers: {
+        			type: Object,
+       				default: null
+			},
 			images : Array,
 			limit : {
 				default : ""
@@ -175,7 +179,15 @@
 					true
 				);
 				xhr.timeout = 3000000;
+				
+				const headers = Object.assign({}, this.$AmiralImagelistConfig.headers, this.headers)
 
+				if(Object.keys(headers).length >0 ){
+				  Object.keys(headers).forEach(key=>{
+				    xhr.setRequestHeader(key, headers[key])
+				  })
+				}
+				
 				xhr.addEventListener("load", function(event) { 
 				});
 				xhr.addEventListener("error", function() {

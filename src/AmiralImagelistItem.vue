@@ -229,8 +229,9 @@
 			top:50%;
 			width: 100%;
 			transform: translateX(-50%) translateY(-50%);
-			.vaii-icon{ 
+			.vaii-icon{
 				color: inherit;
+				margin: 0 auto;
 				svg{
 					path{
 						transition: all .3;
